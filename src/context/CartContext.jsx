@@ -51,7 +51,7 @@ export function CartProvider({ children }) {
 
   function addItemToCart(item) {
     setCartItems(prev => {
-      const index = prev.findIndex(p => p.id===item.id && p.size===item.size);
+      const index = prev.findIndex(p => p.id === item.id && p.size === item.size);
       if (index >= 0) {
         const newCart = [...prev];
         newCart[index].quantity += item.quantity;
@@ -61,10 +61,14 @@ export function CartProvider({ children }) {
     });
   }
 
+  function checkIfAlreadyInCart(id, size) {
+    return cartItems.some(item => item.id === id && item.size === size);
+  }
+
   function increaseQuantity(id, size) {
     setCartItems(prev =>
       prev.map(item =>
-        item.id===id && item.size===size
+        item.id === id && item.size === size
           ? { ...item, quantity: item.quantity + 1 }
           : item
       )
@@ -75,7 +79,7 @@ export function CartProvider({ children }) {
     setCartItems(prev =>
       prev
         .map(item =>
-          item.id===id && item.size===size
+          item.id === id && item.size === size
             ? { ...item, quantity: item.quantity - 1 }
             : item
         )
@@ -84,7 +88,7 @@ export function CartProvider({ children }) {
   }
 
   function removeItemFromCart(id, size) {
-    setCartItems(prev => prev.filter(item => !(item.id===id && item.size===size)));
+    setCartItems(prev => prev.filter(item => !(item.id === id && item.size === size)));
   }
 
   function clearCart() {
@@ -95,6 +99,7 @@ export function CartProvider({ children }) {
     <CartContext.Provider value={{
       cartItems,
       addItemToCart,
+      checkIfAlreadyInCart,
       increaseQuantity,
       decreaseQuantity,
       removeItemFromCart,

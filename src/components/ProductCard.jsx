@@ -1,10 +1,13 @@
 import React from "react";
 
-const ProductCard = ({ product, onAddToCart }) => {
+const ProductCard = ({ product, onAddToCart, onClick }) => {
   const { name, price, imageUrl, code } = product;
 
   return (
-    <div className="bg-white shadow rounded-lg p-4 flex flex-col justify-between">
+    <div
+      onClick={onClick} // <-- This triggers Product Modal
+      className="bg-white shadow rounded-lg p-4 flex flex-col justify-between cursor-pointer hover:shadow-lg transition"
+    >
       <div className="overflow-hidden rounded-lg mb-4 group">
         <img
           src={imageUrl}
@@ -23,11 +26,11 @@ const ProductCard = ({ product, onAddToCart }) => {
           Rs {price.toFixed(2)}
         </p>
         <button
-          onClick={(e) => {
-            e.stopPropagation();
+          onClick={() => {
+            // e.stopPropagation(); // Stop button click from triggering modal
             onAddToCart(product);
           }}
-          className="w-full bg-blue-600 text-white py-2 rounded-lg transform transition-transform duration-300 hover:scale-105 hover:bg-blue-700"
+          className="w-full cursor-pointer bg-blue-600 text-white py-2 rounded-lg transform transition-transform duration-300 hover:scale-105 hover:bg-blue-700"
         >
           Add to Cart
         </button>

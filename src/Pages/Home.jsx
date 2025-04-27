@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FaWhatsapp, FaFacebookMessenger } from 'react-icons/fa';
 import { ArrowRight } from 'lucide-react';
@@ -7,10 +7,19 @@ import CarouselSlider from '../components/CarouselSlider';
 import ProductCard from '../components/ProductCard';
 import Reviews from '../components/Reviews';
 import DemoVideo from '../components/DemoVideo';
+import ProductModal from '../components/ProductModal'; // make sure you have this
 import { allProducts, productCategories, getProductsByCategory } from '../data/products';
 
 export default function Home() {
-  const handleAddToCart = product => console.log('Added to cart:', product);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+
+  const handleProductClick = (product) => {
+    setSelectedProduct(product);
+  };
+
+  const handleCloseModal = () => {
+    setSelectedProduct(null);
+  };
 
   return (
     <div id="home" className="bg-gray-50 relative">
@@ -40,7 +49,7 @@ export default function Home() {
                   <ProductCard
                     key={product.id}
                     product={product}
-                    onAddToCart={handleAddToCart}
+                    onClick={() => handleProductClick(product)}
                   />
                 ))}
               </div>
@@ -68,6 +77,14 @@ export default function Home() {
       >
         <FaFacebookMessenger className="h-5 w-5 md:h-6 md:w-6" />
       </a>
+
+      {/* Product Modal */}
+      {selectedProduct && (
+        <ProductModal
+          product={selectedProduct}
+          onClose={handleCloseModal}
+        />
+      )}
     </div>
   );
 }

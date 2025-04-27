@@ -29,3 +29,17 @@
   background: linear-gradient(135deg, oklch(0.84 0.18 117.33), oklch(0.75 0.12 130.00));
   color: white;
 }
+
+@keyframes slideIn {
+  0% {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+.animate-slideIn {
+  animation: slideIn 0.4s ease forwards;
+}
