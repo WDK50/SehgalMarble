@@ -1,10 +1,12 @@
 /* eslint-disable react-refresh/only-export-components */
+// src/context/CartContext.jsx
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import { useAuth } from '../context/AuthContext';
 
 const CartContext = createContext();
+
 export function useCart() {
   return useContext(CartContext);
 }
@@ -15,62 +17,68 @@ export function CartProvider({ children }) {
   const didLoadRemote = useRef(false);
   const isFirstSync = useRef(true);
 
+  // Fetch cart from Firestore when user signs in
   useEffect(() => {
     if (!user) {
+      didLoadRemote.current = false;
       setCartItems([]);
       return;
     }
-    const fetchCart = async () => {
+    (async () => {
       const ref = doc(db, 'carts', user.uid);
       const snap = await getDoc(ref);
       if (snap.exists()) {
-        const remote = snap.data().items || [];
-        setCartItems(remote);
+        setCartItems(snap.data().items || []);
       } else {
-        const local = JSON.parse(localStorage.getItem('cartItems') || '[]');
-        setCartItems(local);
+        setCartItems([]);
       }
       didLoadRemote.current = true;
-    };
-    fetchCart();
+      isFirstSync.current = true;
+    })();
   }, [user]);
 
+  // Sync cartItems to Firestore (but not on logout)
   useEffect(() => {
     if (!user || !didLoadRemote.current) return;
     if (isFirstSync.current) {
       isFirstSync.current = false;
       return;
     }
-    const saveCart = async () => {
+    (async () => {
       const ref = doc(db, 'carts', user.uid);
-      await setDoc(ref, { items: cartItems });
-    };
-    saveCart();
+      await setDoc(
+        ref,
+        {
+          items:     cartItems,
+          userName:  user.displayName || null,
+          userEmail: user.email       || null
+        },
+        { merge: true }
+      );
+    })();
     localStorage.setItem('cartItems', JSON.stringify(cartItems));
   }, [cartItems, user]);
 
   function addItemToCart(item) {
     setCartItems(prev => {
-      const index = prev.findIndex(p => p.id === item.id && p.size === item.size);
-      if (index >= 0) {
-        const newCart = [...prev];
-        newCart[index].quantity += item.quantity;
-        return newCart;
+      const idx = prev.findIndex(i => i.id === item.id && i.size === item.size);
+      if (idx >= 0) {
+        const copy = [...prev];
+        copy[idx].quantity += item.quantity;
+        return copy;
       }
       return [...prev, item];
     });
   }
 
   function checkIfAlreadyInCart(id, size) {
-    return cartItems.some(item => item.id === id && item.size === size);
+    return cartItems.some(i => i.id === id && i.size === size);
   }
 
   function increaseQuantity(id, size) {
     setCartItems(prev =>
-      prev.map(item =>
-        item.id === id && item.size === size
-          ? { ...item, quantity: item.quantity + 1 }
-          : item
+      prev.map(i =>
+        i.id === id && i.size === size ? { ...i, quantity: i.quantity + 1 } : i
       )
     );
   }
@@ -78,17 +86,15 @@ export function CartProvider({ children }) {
   function decreaseQuantity(id, size) {
     setCartItems(prev =>
       prev
-        .map(item =>
-          item.id === id && item.size === size
-            ? { ...item, quantity: item.quantity - 1 }
-            : item
+        .map(i =>
+          i.id === id && i.size === size ? { ...i, quantity: i.quantity - 1 } : i
         )
-        .filter(item => item.quantity > 0)
+        .filter(i => i.quantity > 0)
     );
   }
 
   function removeItemFromCart(id, size) {
-    setCartItems(prev => prev.filter(item => !(item.id === id && item.size === size)));
+    setCartItems(prev => prev.filter(i => !(i.id === id && i.size === size)));
   }
 
   function clearCart() {
