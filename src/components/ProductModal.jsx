@@ -1,12 +1,22 @@
-import React, { useState } from 'react';
+// src/components/ProductModal.jsx
+import React, { useState, useEffect } from 'react';
 import { useCart } from '../context/CartContext';
+import { useNavigate } from 'react-router-dom';
 import Toast from './Toast';
+import { ArrowUp } from 'lucide-react';
 
-const ProductModal = ({ product, onClose }) => {
+export default function ProductModal({ product, onClose }) {
   const { addItemToCart, checkIfAlreadyInCart } = useCart();
+  const navigate = useNavigate();
   const [selectedSize, setSelectedSize] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
+
+  // Prevent background scroll when modal is open
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = 'auto'; };
+  }, []);
 
   if (!product) return null;
 
@@ -25,14 +35,16 @@ const ProductModal = ({ product, onClose }) => {
     setTimeout(() => {
       setToast({ show: false, message: '', type: 'success' });
       onClose();
-    }, 1000);
+      navigate('/cart');
+    }, 800);
   };
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50">
-        <div className="bg-white rounded-lg max-w-4xl w-full flex flex-col md:flex-row max-h-[90vh] overflow-y-auto">
-          <div className="md:w-1/2 p-4">
+      <div className="fixed inset-0 backdrop-blur-sm bg-black/40 flex items-center justify-center p-4 z-50">
+        <div className="bg-white rounded-lg max-w-4xl w-full flex flex-col md:flex-row max-h-[90vh] overflow-y-auto shadow-lg">
+          
+          <div className="md:w-1/2 p-4 bg-gray-50 flex items-center justify-center">
             <img
               src={product.imageUrl}
               alt={product.name}
@@ -40,29 +52,33 @@ const ProductModal = ({ product, onClose }) => {
             />
           </div>
 
-          <div className="md:w-1/2 p-6 flex flex-col">
-            <div className="flex justify-between items-start mb-4">
-              <h2 className="text-2xl font-bold text-gray-800">{product.name}</h2>
-              <button onClick={onClose} className="text-gray-500 cursor-pointer hover:text-gray-700 text-2xl">&times;</button>
-            </div>
-
-            <p className="text-gray-600 text-sm leading-relaxed mb-4">{product.description}</p>
-            <div className="mb-4 space-y-2 text-gray-600">
+          <div className="md:w-1/2 p-6 flex flex-col relative">
+          <button 
+            onClick={onClose} 
+            className="fixed overflow-hidden top-8 right-5 md:static md:order-2 text-gray-500 hover:text-gray-700 text-2xl cursor-pointer scroll-smooth "
+          >
+            &times;
+          </button>
+            <h2 className="text-2xl font-bold text-gray-800 mb-2">{product.name}</h2>
+            <p className="text-gray-600 text-sm mb-4">{product.description}</p>
+            <div className="space-y-1 text-gray-700 mb-4">
               <p><strong>Code:</strong> {product.code}</p>
-              <p><strong>Price:</strong> Rs {product.price.toFixed(2)}</p>
               <p><strong>Category:</strong> {product.category}</p>
+              <p><strong>Price:</strong> Rs {product.price.toFixed(2)}</p>
             </div>
 
             {product.sizes?.length > 0 && (
               <div className="mb-4">
-                <h3 className="text-lg font-semibold mb-2">Size</h3>
+                <h3 className="font-semibold mb-2">Select Size</h3>
                 <div className="flex flex-wrap gap-2">
                   {product.sizes.map(size => (
                     <button
                       key={size}
                       onClick={() => setSelectedSize(size)}
-                      className={`px-4 py-2 rounded cursor-pointer transition-colors ${
-                        selectedSize === size ? 'bg-blue-600 text-white' : 'bg-gray-200 hover:bg-gray-300'
+                      className={`px-4 py-2 rounded border ${
+                        selectedSize === size
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-200 hover:bg-gray-300'
                       }`}
                     >
                       {size}
@@ -73,7 +89,7 @@ const ProductModal = ({ product, onClose }) => {
             )}
 
             <div className="mb-6">
-              <h3 className="text-lg font-semibold mb-2">Quantity</h3>
+              <h3 className="font-semibold mb-2">Quantity</h3>
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setQuantity(q => Math.max(1, q - 1))}
@@ -97,26 +113,27 @@ const ProductModal = ({ product, onClose }) => {
                   className="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300"
                 >+</button>
               </div>
-              <p className="text-sm text-gray-500 mt-1">{product.stock} available</p>
+              <p className="text-xs text-gray-500 mt-1">{product.stock} available</p>
             </div>
 
             <button
               onClick={handleAddToCart}
               disabled={product.sizes?.length > 0 && !selectedSize}
-              className="mt-auto bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 disabled:bg-gray-400"
+              className="mt-auto bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 transition"
             >
-              {`Add to Cart${selectedSize ? ` (${selectedSize})` : ''} - Rs ${(product.price * quantity).toFixed(2)}`}
+              Add to Cart{selectedSize ? ` (${selectedSize})` : ''} – Rs {(product.price * quantity).toFixed(2)}
             </button>
           </div>
         </div>
       </div>
 
       {toast.show && (
-        <Toast message={toast.message} type={toast.type} onClose={() => setToast({ show: false, message: '', type: 'success' })} />
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast({ show: false, message: '', type: 'success' })}
+        />
       )}
     </>
   );
-};
-
-export default ProductModal;
-  
+}

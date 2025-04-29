@@ -46,7 +46,7 @@ export default function Contact() {
         </form>
 
         <div className="flex flex-col items-end justify-between w-full h-full">
-          <div className="space-y-6">
+          <div className="space-y-6 space-x-6 md:space-x-0">
             <div className="flex items-center space-x-2">
               <MapPin className="w-5 h-5 text-gray-600" />
               <span>123 Marble Ave, Stone City</span>

@@ -5,8 +5,8 @@ const ProductCard = ({ product, onAddToCart, onClick }) => {
 
   return (
     <div
-      onClick={onClick} // <-- This triggers Product Modal
-      className="bg-white shadow rounded-lg p-4 flex flex-col justify-between cursor-pointer hover:shadow-lg transition"
+      onClick={onClick} 
+      className="bg-white hover:scale-105 shadow rounded-lg p-4 flex flex-col justify-between cursor-pointer hover:shadow-lg transition"
     >
       <div className="overflow-hidden rounded-lg mb-4 group">
         <img
@@ -27,12 +27,11 @@ const ProductCard = ({ product, onAddToCart, onClick }) => {
         </p>
         <button
           onClick={() => {
-            // e.stopPropagation(); // Stop button click from triggering modal
             onAddToCart(product);
           }}
           className="w-full cursor-pointer bg-blue-600 text-white py-2 rounded-lg transform transition-transform duration-300 hover:scale-105 hover:bg-blue-700"
         >
-          Add to Cart
+          Quick View
         </button>
       </div>
     </div>

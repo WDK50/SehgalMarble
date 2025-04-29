@@ -42,8 +42,6 @@ const About = () => {
 
   return (
     <div className="bg-gray-50 text-gray-800">
-
-      {/* 1. Hero / Intro */}
       <section className="relative h-[50vh] flex items-center justify-center bg-gray-200 overflow-hidden">
         <img
           src={heroImg}

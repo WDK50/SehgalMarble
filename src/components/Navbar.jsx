@@ -43,22 +43,19 @@ export default function Navbar() {
       <div className="container mx-auto px-4 py-4 flex justify-between items-center relative">
         <Link to="/" className="text-2xl font-bold text-gray-800">My Marble Store</Link>
 
-        {/* Desktop Menu */}
         <div className="hidden md:flex space-x-6 text-gray-700 font-medium">
           <Link to="/" className="hover:underline">Home</Link>
-          <Link to="/products" className="hover:underline">Products</Link>
           <Link to="/about" className="hover:underline">About</Link>
+          <Link to="/products" className="hover:underline">Products</Link>
           <Link to="/contact" className="hover:underline">Contact</Link>
         </div>
 
-        {/* Mobile Hamburger */}
         <div className="md:hidden flex items-center">
           <button onClick={() => setShowMobileMenu(!showMobileMenu)} className="text-2xl text-gray-700 hover:text-black focus:outline-none mr-4">
             {showMobileMenu ? <FiX /> : <FiMenu />}
           </button>
         </div>
 
-        {/* Right Side */}
         <div className="flex items-center space-x-6 relative">
           <button onClick={() => setShowMenu(m => !m)} className="flex items-center space-x-2 focus:outline-none">
             {userInitials ? (
@@ -92,12 +89,11 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Mobile Dropdown */}
       {showMobileMenu && (
         <div className="md:hidden bg-white shadow-lg rounded-b-lg border-t p-4 space-y-4 text-gray-700 font-medium">
           <Link to="/" onClick={() => setShowMobileMenu(false)} className="block hover:underline">Home</Link>
-          <Link to="/products" onClick={() => setShowMobileMenu(false)} className="block hover:underline">Products</Link>
           <Link to="/about" onClick={() => setShowMobileMenu(false)} className="block hover:underline">About</Link>
+          <Link to="/products" onClick={() => setShowMobileMenu(false)} className="block hover:underline">Products</Link>
           <Link to="/contact" onClick={() => setShowMobileMenu(false)} className="block hover:underline">Contact</Link>
         </div>
       )}

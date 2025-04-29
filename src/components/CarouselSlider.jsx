@@ -18,7 +18,7 @@ const CarouselSlider = () => {
   }, [length]);
 
   return (
-    <div className="relative w-full overflow-hidden h-fit">
+    <div className="relative w-full  overflow-hidden h-fit">
       {images.map((img, index) => (
         <div
           key={index}
@@ -26,7 +26,7 @@ const CarouselSlider = () => {
             index === current ? 'opacity-100' : 'opacity-0 absolute inset-0'
           }`}
         >
-          <img src={img} alt={`Slide ${index + 1}`} className="w-full h-full object-contain" />
+          <img src={img} alt={`Slide ${index + 1}`} className="w-full h-fit  md:h-full object-contain" />
         </div>
       ))}
       <div className="absolute bottom-4 left-0 right-0 flex justify-center space-x-2">
@@ -34,7 +34,7 @@ const CarouselSlider = () => {
           <button
             key={index}
             onClick={() => setCurrent(index)}
-            className={`w-3 h-3 rounded-full ${index === current ? 'bg-blue-500' : 'bg-gray-300'}`}
+            className={`md:w-3 md:h-3 w-1.5 h-1.5 rounded-full ${index === current ? 'bg-blue-500' : 'bg-gray-300'}`}
           ></button>
         ))}
       </div>

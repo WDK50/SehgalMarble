@@ -22,7 +22,7 @@ export default function Home() {
   };
 
   return (
-    <div id="home" className="bg-gray-50 relative">
+    <div id="home" className="bg-gray-50 ">
       <CarouselSlider />
 
       <div className="container mx-auto px-4 space-y-12">
@@ -60,14 +60,12 @@ export default function Home() {
         <Reviews key="reviews" />
         <DemoVideo key="demo-video" />
       </div>
-
-      {/* Floating Chat Buttons */}
       <a
-        href="https://wa.me/923008600444?text=Hello"
+        href="https://wa.me/923008600444?text=Hello! How can we help you??"
         aria-label="Chat on WhatsApp"
         className="fixed bottom-4 right-4 md:bottom-8 md:right-8 bg-green-500 hover:bg-green-600 text-white p-4 rounded-full shadow-lg z-50"
       >
-        <FaWhatsapp className="h-5 w-5 md:h-6 md:w-6" />
+        <FaWhatsapp className="h-3 w-3 md:h-5 md:w-5" />
       </a>
 
       <a
@@ -75,10 +73,9 @@ export default function Home() {
         aria-label="Chat on Facebook Messenger"
         className="fixed bottom-4 left-4 md:bottom-8 md:left-8 bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-full shadow-lg z-50"
       >
-        <FaFacebookMessenger className="h-5 w-5 md:h-6 md:w-6" />
+        <FaFacebookMessenger className="h-3 w-3 md:h-5 md:w-5" />
       </a>
 
-      {/* Product Modal */}
       {selectedProduct && (
         <ProductModal
           product={selectedProduct}
