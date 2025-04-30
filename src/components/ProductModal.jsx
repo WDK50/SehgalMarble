@@ -48,14 +48,14 @@ export default function ProductModal({ product, onClose }) {
             <img
               src={product.imageUrl}
               alt={product.name}
-              className="w-full h-96 object-contain rounded-lg"
+              className="w-full h-96 mt-4 object-contain rounded-lg"
             />
           </div>
 
           <div className="md:w-1/2 p-6 flex flex-col relative">
           <button 
             onClick={onClose} 
-            className="fixed overflow-hidden top-8 right-5 md:static md:order-2 text-gray-500 hover:text-gray-700 text-2xl cursor-pointer scroll-smooth "
+            className="fixed overflow-hidden top-10 right-6 md:right-5 md:top-2 md:absolute  text-gray-500 hover:text-gray-700 text-2xl cursor-pointer scrolkjl-smooth "
           >
             &times;
           </button>
