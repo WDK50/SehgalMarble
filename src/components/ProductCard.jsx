@@ -6,7 +6,7 @@ const ProductCard = ({ product, onAddToCart, onClick }) => {
   return (
     <div
       onClick={onClick} 
-      className="bg-white hover:scale-105 shadow rounded-lg p-4 flex flex-col justify-between cursor-pointer hover:shadow-lg transition"
+      className="bg-white hover:scale-105 hover:bg-amber-300 shadow rounded-lg p-4 flex flex-col justify-between cursor-pointer hover:shadow-lg transition"
     >
       <div className="overflow-hidden rounded-lg mb-4 group">
         <img

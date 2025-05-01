@@ -110,10 +110,10 @@ export default function ProductsPage() {
       {showScroll && (
         <button
           onClick={scrollToTop}
-          className="fixed bottom-6 right-6 md:bottom-8 md:right-8 bg-teal-600 hover:bg-teal-700 text-white p-3 rounded-full shadow-lg transition"
+          className="fixed bottom-6 right-6 md:bottom-8 md:right-8 bg-teal-600 hover:bg-teal-700 text-white p-3 rounded-full shadow-md transition"
           aria-label="Scroll to top"
         >
-          <ArrowUp className="w-5 h-5" />
+          <ArrowUp className="w-5 h-5 cursor-pointer" />
         </button>
       )}
     </div>

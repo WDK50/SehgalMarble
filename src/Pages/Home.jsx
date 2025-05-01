@@ -22,7 +22,7 @@ export default function Home() {
   };
 
   return (
-    <div id="home" className="bg-gray-50 ">
+    <div id="home" className="bg-gray-50 mb-4">
       <CarouselSlider />
 
       <div className="container mx-auto px-4 space-y-12">
@@ -58,22 +58,22 @@ export default function Home() {
         })}
 
         <Reviews key="reviews" />
-        <DemoVideo key="demo-video" />
+        {/* <DemoVideo key="demo-video" /> */}
       </div>
       <a
         href="https://wa.me/923008600444?text=Hello! How can we help you??"
         aria-label="Chat on WhatsApp"
         className="fixed bottom-4 right-4 md:bottom-8 md:right-8 bg-green-500 hover:bg-green-600 text-white p-4 rounded-full shadow-lg z-50"
       >
-        <FaWhatsapp className="h-3 w-3 md:h-5 md:w-5" />
+        <FaWhatsapp className="h-3 w-3 md:h-3 md:w-3" />
       </a>
 
       <a
         href="https://m.me/SeghalMarble"
         aria-label="Chat on Facebook Messenger"
-        className="fixed bottom-4 left-4 md:bottom-8 md:left-8 bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-full shadow-lg z-50"
+        className="fixed bottom-4 left-4 md:bottom-8 md:left-4 bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-full shadow-lg z-50"
       >
-        <FaFacebookMessenger className="h-3 w-3 md:h-5 md:w-5" />
+        <FaFacebookMessenger className="h-3 w-3 " />
       </a>
 
       {selectedProduct && (

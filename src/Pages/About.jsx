@@ -53,7 +53,7 @@ const About = () => {
         />
         <div className="relative text-center text-black px-4 opacity-20 group-hover:opacity-100 transition-opacity duration-300">
           <h1 className="text-4xl md:text-6xl font-bold mb-4 drop-shadow-md">
-            About MarbleLux
+            About SehgalMarble
           </h1>
           <p className="max-w-2xl mx-auto text-lg drop-shadow-md">
             Crafting timeless elegance from nature’s finest marble—our story is

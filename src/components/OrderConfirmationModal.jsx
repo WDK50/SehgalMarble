@@ -1,473 +1,254 @@
-import React, { useState } from 'react';
+// src/components/OrderConfirmationModal.jsx
+import React, { useState, useEffect } from 'react';
 import { FiX } from 'react-icons/fi';
+import { InputMask } from '@react-input/mask';
 import emailjs from '@emailjs/browser';
+import Toast from './Toast';
+import {pakCities} from '../data/pakCities'
 
-const OrderConfirmationModal = ({ onClose, onSubmit, cartItems, total }) => {
-  const [formData, setFormData] = useState({
-    // Personal Information
-    fullName: '',
-    email: '',
-    contactNumber: '',
-    
-    // Receiver Information
-    receiverName: '',
-    receiverCNIC: '',
-    relationship: '',
-    
-    // Delivery Information
-    country: 'Pakistan',
-    state: '',
-    city: '',
-    zipCode: '',
-    landmark: '',
-    completeAddress: '',
-    deliveryInstructions: '',
-    
-    // Payment Information
-    paymentMethod: 'cash',
-    transactionId: ''
+export default function OrderConfirmationModal({ onClose, onSubmit, cartItems, total }) {
+  const [data, setData] = useState({
+    fullName: '', email: '', contactNumber: '',
+    receiverName: '', receiverCNIC: '', relationship: '',
+    country: 'Pakistan', state: '', city: '', zipCode: '',
+    completeAddress: '', landmark: '', deliveryInstructions: '',
+    paymentMethod: 'cash', transactionId: ''
   });
-
   const [errors, setErrors] = useState({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [toast, setToast] = useState(null);
 
-  const pakistaniStates = [
-    'Punjab', 'Sindh', 'Khyber Pakhtunkhwa', 
-    'Balochistan', 'Gilgit-Baltistan', 'Azad Kashmir'
-  ];
+  const states = ['Punjab','Sindh','Khyber Pakhtunkhwa','Balochistan','Gilgit-Baltistan','Azad Kashmir'];
+  const relationships = ['Self','Family Member','Friend','Colleague','Other'];
 
-  const relationships = [
-    'Self', 'Family Member', 'Friend', 
-    'Colleague', 'Other'
-  ];
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    emailjs.init(import.meta.env.VITE_EMAILJS_USER_ID);
+    return () => { document.body.style.overflow = ''; };
+  }, []);
 
-  const validateForm = () => {
-    const newErrors = {};
-    
-    // Required fields validation
-    const requiredFields = [
-      'fullName', 'contactNumber', 'receiverName',
-      'receiverCNIC', 'relationship', 'country',
-      'state', 'city', 'zipCode', 'completeAddress'
-    ];
-
-    requiredFields.forEach(field => {
-      if (!formData[field].trim()) {
-        newErrors[field] = `${field.replace(/([A-Z])/g, ' $1').trim()} is required`;
-      }
-    });
-
-    // CNIC validation
-    if (!/^\d{5}-\d{7}-\d$/.test(formData.receiverCNIC)) {
-      newErrors.receiverCNIC = 'Invalid CNIC format (XXXXX-XXXXXXX-X)';
-    }
-
-    // Phone validation
-    if (!/^03\d{9}$/.test(formData.contactNumber)) {
-      newErrors.contactNumber = 'Invalid format (03XXXXXXXXX)';
-    }
-
-    // Email validation
-    if (formData.email && !/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Invalid email address';
-    }
-
-    // Transaction ID validation for non-cash payments
-    if (formData.paymentMethod !== 'cash' && !formData.transactionId) {
-      newErrors.transactionId = 'Transaction ID is required';
-    }
-
-    return newErrors;
-  };
-
-  const handleChange = (e) => {
+  const handleChange = e => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setData(d => ({ ...d, [name]: value }));
+    setErrors(err => ({ ...err, [name]: undefined }));
   };
 
-  const sendConfirmationEmails = async () => {
-    const orderId = `SM-${Date.now().toString().slice(-6)}`;
-    const orderDate = new Date().toLocaleDateString('en-PK', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
+  const validate = () => {
+    const e = {};
+    ['fullName','contactNumber','receiverName','receiverCNIC','relationship','state','city','zipCode','completeAddress']
+      .forEach(f => { if (!data[f]?.trim()) e[f] = 'Required'; });
+    if (data.contactNumber && !/^03\d{9}$/.test(data.contactNumber))
+      e.contactNumber = 'Format: 03XXXXXXXXX';
+    if (data.receiverCNIC && !/^\d{5}-\d{7}-\d$/.test(data.receiverCNIC))
+      e.receiverCNIC = 'Format: 12345-1234567-1';
+    if (data.paymentMethod !== 'cash' && !data.transactionId)
+      e.transactionId = 'Required';
+    return e;
+  };
 
-    // Customer Email
+  const sendEmails = async (orderId, orderDate) => {
+    const itemsText = cartItems.map(i =>
+      `• ${i.name} (${i.size||'N/A'}) x${i.quantity} — Rs ${(i.price*i.quantity).toFixed(2)}`
+    ).join('\n');
+
+    const params = {
+      to_email:       data.email,
+      to_name:        data.fullName,
+      order_id:       orderId,
+      order_date:     orderDate,
+      customer_name:  data.fullName,
+      customer_email: data.email || 'N/A',
+      customer_phone: data.contactNumber,
+      receiver_name:  data.receiverName,
+      receiver_cnic:  data.receiverCNIC,
+      receiver_relationship: data.relationship,
+      delivery_address: `${data.completeAddress}${data.landmark?`, Lm: ${data.landmark}`:''}, ${data.city}, ${data.state}, ${data.zipCode}, ${data.country}`,
+      delivery_instructions: data.deliveryInstructions || 'None',
+      payment_method: data.paymentMethod.toUpperCase(),
+      transaction_id: data.transactionId || 'N/A',
+      order_items:    itemsText,
+      order_total:    total.toFixed(2)
+    };
+
+    // send to customer
     await emailjs.send(
       import.meta.env.VITE_EMAILJS_SERVICE_ID,
       import.meta.env.VITE_EMAILJS_CUSTOMER_TEMPLATE_ID,
-      {
-        order_id: orderId,
-        order_date: orderDate,
-        customer_name: formData.fullName,
-        customer_email: formData.email,
-        customer_phone: formData.contactNumber,
-        receiver_name: formData.receiverName,
-        receiver_relationship: formData.relationship,
-        delivery_address: `
-          ${formData.completeAddress}
-          ${formData.landmark ? `Landmark: ${formData.landmark}` : ''}
-          ${formData.city}, ${formData.state}
-          ${formData.zipCode}
-          ${formData.country}
-        `,
-        delivery_instructions: formData.deliveryInstructions || 'None',
-        payment_method: formData.paymentMethod.toUpperCase(),
-        transaction_id: formData.transactionId || 'N/A',
-        order_total: total.toFixed(2),
-        order_items: cartItems.map(item => ({
-          name: item.name,
-          quantity: item.quantity,
-          price: item.price.toFixed(2),
-          total: (item.price * item.quantity).toFixed(2)
-        }))
-      },
-      import.meta.env.VITE_EMAILJS_USER_ID
+      params
     );
 
-    // Owner Email
+    // send to owner
     await emailjs.send(
       import.meta.env.VITE_EMAILJS_SERVICE_ID,
       import.meta.env.VITE_EMAILJS_OWNER_TEMPLATE_ID,
-      {
-        order_id: orderId,
-        order_date: orderDate,
-        customer_name: formData.fullName,
-        customer_contact: formData.contactNumber,
-        customer_email: formData.email || 'Not provided',
-        receiver_info: `
-          Name: ${formData.receiverName}
-          CNIC: ${formData.receiverCNIC}
-          Relationship: ${formData.relationship}
-        `,
-        delivery_info: `
-          Address: ${formData.completeAddress}
-          Landmark: ${formData.landmark || 'None'}
-          City: ${formData.city}
-          State: ${formData.state}
-          Zip: ${formData.zipCode}
-          Country: ${formData.country}
-          Instructions: ${formData.deliveryInstructions || 'None'}
-        `,
-        payment_info: `
-          Method: ${formData.paymentMethod.toUpperCase()}
-          ${formData.transactionId ? `Transaction ID: ${formData.transactionId}` : ''}
-        `,
-        order_summary: cartItems.map(item => `
-          • ${item.name}
-            - Quantity: ${item.quantity}
-            - Price: $${item.price.toFixed(2)}
-            - Total: $${(item.price * item.quantity).toFixed(2)}
-        `).join('\n'),
-        order_total: total.toFixed(2),
-        urgent: cartItems.some(item => item.category === 'Marble') ? 'URGENT: Marble order' : 'Standard order'
-      },
-      import.meta.env.VITE_EMAILJS_USER_ID
+      { ...params,
+        to_email: import.meta.env.VITE_ORDER_RECEIVER_EMAIL,
+        to_name:  'Store Owner'
+      }
     );
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async e => {
     e.preventDefault();
-    const validationErrors = validateForm();
-    setErrors(validationErrors);
+    const e2 = validate();
+    if (Object.keys(e2).length) { setErrors(e2); return; }
+    setSubmitting(true);
 
-    if (Object.keys(validationErrors).length > 0) return;
-
-    setIsSubmitting(true);
-
+    const orderId = `SM-${Date.now().toString().slice(-6)}`;
+    const orderDate = new Date().toLocaleString('en-PK');
     try {
-      await sendConfirmationEmails();
-      onSubmit({
-        ...formData,
-        orderId: `SM-${Date.now().toString().slice(-6)}`,
-        items: cartItems,
-        total,
-        date: new Date().toISOString()
-      });
-    } catch (error) {
-      alert('Failed to process order. Please try again or contact support.');
-      console.error('Order submission error:', error);
+      await sendEmails(orderId, orderDate);
+      setToast({ message: 'Order confirmed!', type: 'success' });
+      onSubmit({ ...data, orderId, items: cartItems, total, date: new Date().toISOString() });
+    } catch (err) {
+      console.error('EmailJS error:', err);
+      setToast({ message: 'Submission failed.', type: 'error' });
     } finally {
-      setIsSubmitting(false);
+      setSubmitting(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white z-10 p-4 border-b flex justify-between items-center">
-          <h2 className="text-2xl font-bold text-gray-800">Complete Your Order</h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
-            <FiX className="h-6 w-6" />
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          {/* Personal Information Section */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold border-b pb-2">Personal Information</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Full Name *</label>
-                <input
-                  type="text"
-                  name="fullName"
-                  value={formData.fullName}
-                  onChange={handleChange}
-                  className="w-full p-2 border rounded"
-                />
-                {errors.fullName && <p className="text-red-500 text-sm mt-1">{errors.fullName}</p>}
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Email</label>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  className="w-full p-2 border rounded"
-                />
-                {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Contact Number *</label>
-                <input
-                  type="tel"
-                  name="contactNumber"
-                  value={formData.contactNumber}
-                  onChange={handleChange}
-                  placeholder="03XXXXXXXXX"
-                  className="w-full p-2 border rounded"
-                />
-                {errors.contactNumber && <p className="text-red-500 text-sm mt-1">{errors.contactNumber}</p>}
-              </div>
-            </div>
+    <>
+      <div className="fixed inset-0 backdrop-blur-sm bg-black/40 flex items-center justify-center p-4 z-50">
+        <div className="bg-white rounded-lg w-full max-w-3xl max-h-[90vh] overflow-y-auto shadow-lg">
+          <div className="sticky top-0 bg-white z-10 flex justify-between p-4 border-b">
+            <h2 className="text-xl font-bold">Complete Your Order</h2>
+            <button onClick={onClose}><FiX className="h-6 w-6"/></button>
           </div>
-
-          {/* Receiver Information Section */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold border-b pb-2">Receiver Information</h3>
+          <form onSubmit={handleSubmit} className="p-6 space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium mb-1">Receiver Name *</label>
-                <input
-                  type="text"
-                  name="receiverName"
-                  value={formData.receiverName}
-                  onChange={handleChange}
-                  className="w-full p-2 border rounded"
-                />
-                {errors.receiverName && <p className="text-red-500 text-sm mt-1">{errors.receiverName}</p>}
+                <label className="block mb-1">Full Name *</label>
+                <input name="fullName" value={data.fullName} onChange={handleChange}
+                       className="w-full p-2 border rounded"/>
+                {errors.fullName && <p className="text-red-500 text-sm">{errors.fullName}</p>}
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Receiver CNIC *</label>
-                <input
-                  type="text"
-                  name="receiverCNIC"
-                  value={formData.receiverCNIC}
-                  onChange={handleChange}
-                  placeholder="XXXXX-XXXXXXX-X"
-                  className="w-full p-2 border rounded"
-                />
-                {errors.receiverCNIC && <p className="text-red-500 text-sm mt-1">{errors.receiverCNIC}</p>}
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Relationship *</label>
-                <select
-                  name="relationship"
-                  value={formData.relationship}
-                  onChange={handleChange}
-                  className="w-full p-2 border rounded"
-                >
-                  <option value="">Select Relationship</option>
-                  {relationships.map(rel => (
-                    <option key={rel} value={rel}>{rel}</option>
-                  ))}
-                </select>
-                {errors.relationship && <p className="text-red-500 text-sm mt-1">{errors.relationship}</p>}
-              </div>
-            </div>
-          </div>
-
-          {/* Delivery Information Section */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold border-b pb-2">Delivery Information</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Country *</label>
-                <select
-                  name="country"
-                  value={formData.country}
-                  onChange={handleChange}
-                  className="w-full p-2 border rounded"
-                >
-                  <option value="Pakistan">Pakistan</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">State/Province *</label>
-                <select
-                  name="state"
-                  value={formData.state}
-                  onChange={handleChange}
-                  className="w-full p-2 border rounded"
-                >
-                  <option value="">Select State</option>
-                  {pakistaniStates.map(state => (
-                    <option key={state} value={state}>{state}</option>
-                  ))}
-                </select>
-                {errors.state && <p className="text-red-500 text-sm mt-1">{errors.state}</p>}
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">City *</label>
-                <input
-                  type="text"
-                  name="city"
-                  value={formData.city}
-                  onChange={handleChange}
-                  className="w-full p-2 border rounded"
-                />
-                {errors.city && <p className="text-red-500 text-sm mt-1">{errors.city}</p>}
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Zip Code *</label>
-                <input
-                  type="text"
-                  name="zipCode"
-                  value={formData.zipCode}
-                  onChange={handleChange}
-                  className="w-full p-2 border rounded"
-                />
-                {errors.zipCode && <p className="text-red-500 text-sm mt-1">{errors.zipCode}</p>}
+                <label className="block mb-1">Contact Number *</label>
+                <input name="contactNumber" value={data.contactNumber} onChange={handleChange}
+                       placeholder="03XXXXXXXXX" className="w-full p-2 border rounded"/>
+                {errors.contactNumber && <p className="text-red-500 text-sm">{errors.contactNumber}</p>}
               </div>
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium mb-1">Complete Address *</label>
-                <textarea
-                  name="completeAddress"
-                  value={formData.completeAddress}
-                  onChange={handleChange}
-                  className="w-full p-2 border rounded"
-                  rows="3"
-                  placeholder="House #, Street, Area"
-                />
-                {errors.completeAddress && <p className="text-red-500 text-sm mt-1">{errors.completeAddress}</p>}
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Landmark (Optional)</label>
-                <input
-                  type="text"
-                  name="landmark"
-                  value={formData.landmark}
-                  onChange={handleChange}
-                  className="w-full p-2 border rounded"
-                  placeholder="Near famous place/building"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Delivery Instructions</label>
-                <textarea
-                  name="deliveryInstructions"
-                  value={formData.deliveryInstructions}
-                  onChange={handleChange}
-                  className="w-full p-2 border rounded"
-                  rows="2"
-                  placeholder="Any special instructions"
-                />
+                <label className="block mb-1">Email</label>
+                <input name="email" type="email" value={data.email} onChange={handleChange}
+                       className="w-full p-2 border rounded"/>
               </div>
             </div>
-          </div>
-
-          {/* Payment Information Section */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold border-b pb-2">Payment Information</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium mb-1">Payment Method *</label>
-                <select
-                  name="paymentMethod"
-                  value={formData.paymentMethod}
-                  onChange={handleChange}
-                  className="w-full p-2 border rounded"
-                >
+                <label className="block mb-1">Receiver Name *</label>
+                <input name="receiverName" value={data.receiverName} onChange={handleChange}
+                       className="w-full p-2 border rounded"/>
+                {errors.receiverName && <p className="text-red-500 text-sm">{errors.receiverName}</p>}
+              </div>
+              <div>
+                <label className="block mb-1">Receiver CNIC *</label>
+                <InputMask mask="99999-9999999-9" name="receiverCNIC" replacement={{'9':/\d/}}
+                           value={data.receiverCNIC} onChange={handleChange}
+                           className="w-full p-2 border rounded" placeholder="12345-1234567-1"/>
+                {errors.receiverCNIC && <p className="text-red-500 text-sm">{errors.receiverCNIC}</p>}
+              </div>
+              <div>
+                <label className="block mb-1">Relationship *</label>
+                <select name="relationship" value={data.relationship} onChange={handleChange}
+                        className="w-full p-2 border rounded">
+                  <option value="">Select</option>{relationships.map(r=> <option key={r} value={r}>{r}</option>)}
+                </select>
+                {errors.relationship && <p className="text-red-500 text-sm">{errors.relationship}</p>}
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block mb-1">State *</label>
+                <select name="state" value={data.state} onChange={handleChange}
+                        className="w-full p-2 border rounded">
+                  <option value="">Select State</option>{states.map(s=> <option key={s} value={s}>{s}</option>)}
+                </select>
+                {errors.state && <p className="text-red-500 text-sm">{errors.state}</p>}
+              </div>
+              <div>
+                <label className="block mb-1">City *</label>
+                <select name="city" value={data.city} onChange={handleChange}
+                        className="w-full p-2 border rounded">
+                  <option value="">Select City</option>{pakCities.map(c=> <option key={c} value={c}>{c}</option>)}
+                </select>
+                {errors.city && <p className="text-red-500 text-sm">{errors.city}</p>}
+              </div>
+              <div>
+                <label className="block mb-1">Zip Code *</label>
+                <input name="zipCode" value={data.zipCode} onChange={handleChange}
+                       className="w-full p-2 border rounded"/>
+                {errors.zipCode && <p className="text-red-500 text-sm">{errors.zipCode}</p>}
+              </div>
+              <div className="md:col-span-2">
+                <label className="block mb-1">Complete Address *</label>
+                <textarea name="completeAddress" value={data.completeAddress} onChange={handleChange}
+                          className="w-full p-2 border rounded" rows="2"/>
+                {errors.completeAddress && <p className="text-red-500 text-sm">{errors.completeAddress}</p>}
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block mb-1">Payment Method *</label>
+                <select name="paymentMethod" value={data.paymentMethod} onChange={handleChange}
+                        className="w-full p-2 border rounded">
                   <option value="cash">Cash on Delivery</option>
                   <option value="bank">Bank Transfer</option>
                   <option value="jazzcash">JazzCash</option>
                   <option value="easypaisa">EasyPaisa</option>
                 </select>
               </div>
-              {formData.paymentMethod !== 'cash' && (
+              {data.paymentMethod !== 'cash' && (
                 <div>
-                  <label className="block text-sm font-medium mb-1">Transaction ID *</label>
-                  <input
-                    type="text"
-                    name="transactionId"
-                    value={formData.transactionId}
-                    onChange={handleChange}
-                    className="w-full p-2 border rounded"
-                    placeholder="Enter transaction reference"
-                  />
-                  {errors.transactionId && <p className="text-red-500 text-sm mt-1">{errors.transactionId}</p>}
+                  <label className="block mb-1">Transaction ID *</label>
+                  <input name="transactionId" value={data.transactionId} onChange={handleChange}
+                         className="w-full p-2 border rounded"/>
+                  {errors.transactionId && <p className="text-red-500 text-sm">{errors.transactionId}</p>}
                 </div>
               )}
             </div>
-          </div>
-
-          {/* Order Summary Section */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold border-b pb-2">Order Summary</h3>
-            <div className="bg-gray-50 p-4 rounded-lg">
-              {cartItems.map(item => (
-                <div key={item.id} className="flex justify-between py-2 border-b">
-                  <div>
-                    <p className="font-medium">{item.name}</p>
-                    <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
-                  </div>
-                  <p className="font-medium">${(item.price * item.quantity).toFixed(2)}</p>
-                </div>
-              ))}
-              <div className="flex justify-between pt-4 font-bold text-lg">
-                <span>Total</span>
-                <span>${total.toFixed(2)}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Form Actions */}
-          <div className="flex justify-end space-x-4 pt-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-6 py-2 bg-gray-300 rounded-md hover:bg-gray-400 transition"
-              disabled={isSubmitting}
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition flex items-center"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? (
-                <>
-                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Processing...
-                </>
-              ) : 'Confirm Order'}
-            </button>
-          </div>
-        </form>
-      </div>
+            <div>
+{/* Order Summary */}
+<h3 className="text-lg font-semibold mb-3 text-gray-800 border-b border-gray-300 pb-2">
+  Order Summary
+</h3>
+<div className="bg-white p-4 rounded-lg shadow-sm divide-y divide-gray-200">
+  {cartItems.map(i => (
+    <div
+      key={`${i.id}-${i.size}`}
+      className="flex justify-between items-center py-3"
+    >
+      <span className="text-gray-700">
+        {i.name} <span className="text-sm text-gray-500">({i.size||'N/A'})</span> × {i.quantity}
+      </span>
+      <span className="font-medium text-gray-900">
+        Rs {(i.price * i.quantity).toFixed(2)}
+      </span>
     </div>
-  );
-};
+  ))}
 
-export default OrderConfirmationModal;
+  <div className="flex justify-between items-center pt-4 mt-4 border-t border-gray-200">
+    <span className="text-base font-semibold text-gray-800">Total</span>
+    <span className="text-xl font-bold text-green-600">
+      Rs {total.toFixed(2)}
+    </span>
+  </div>
+</div>
+            </div>
+            <div className="flex justify-end space-x-4 pt-4">
+              <button type="button" onClick={onClose} disabled={submitting}
+                      className="px-5 py-2 bg-gray-300 rounded">Cancel</button>
+              <button type="submit" disabled={submitting}
+                      className="px-5 py-2 bg-green-600 text-white rounded">
+                {submitting ? 'Processing…' : 'Confirm Order'}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+    </>
+  );
+}
