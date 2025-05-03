@@ -4,7 +4,7 @@ import { FiX } from 'react-icons/fi';
 import { InputMask } from '@react-input/mask';
 import emailjs from '@emailjs/browser';
 import Toast from './Toast';
-import {pakCities} from '../data/pakCities'
+import { pakCities } from '../data/pakCities';
 
 export default function OrderConfirmationModal({ onClose, onSubmit, cartItems, total }) {
   const [data, setData] = useState({
@@ -18,7 +18,7 @@ export default function OrderConfirmationModal({ onClose, onSubmit, cartItems, t
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState(null);
 
-  const states = ['Punjab','Sindh','Khyber Pakhtunkhwa','Balochistan','Gilgit-Baltistan','Azad Kashmir'];
+  const states       = ['Punjab','Sindh','Khyber Pakhtunkhwa','Balochistan','Gilgit-Baltistan','Azad Kashmir'];
   const relationships = ['Self','Family Member','Friend','Colleague','Other'];
 
   useEffect(() => {
@@ -62,7 +62,7 @@ export default function OrderConfirmationModal({ onClose, onSubmit, cartItems, t
       receiver_name:  data.receiverName,
       receiver_cnic:  data.receiverCNIC,
       receiver_relationship: data.relationship,
-      delivery_address: `${data.completeAddress}${data.landmark?`, Lm: ${data.landmark}`:''}, ${data.city}, ${data.state}, ${data.zipCode}, ${data.country}`,
+      delivery_address: `${data.completeAddress}${data.landmark?`, Landmark: ${data.landmark}`:''}, ${data.city}, ${data.state}, ${data.zipCode}, ${data.country}`,
       delivery_instructions: data.deliveryInstructions || 'None',
       payment_method: data.paymentMethod.toUpperCase(),
       transaction_id: data.transactionId || 'N/A',
@@ -70,14 +70,11 @@ export default function OrderConfirmationModal({ onClose, onSubmit, cartItems, t
       order_total:    total.toFixed(2)
     };
 
-    // send to customer
     await emailjs.send(
       import.meta.env.VITE_EMAILJS_SERVICE_ID,
       import.meta.env.VITE_EMAILJS_CUSTOMER_TEMPLATE_ID,
       params
     );
-
-    // send to owner
     await emailjs.send(
       import.meta.env.VITE_EMAILJS_SERVICE_ID,
       import.meta.env.VITE_EMAILJS_OWNER_TEMPLATE_ID,
@@ -94,7 +91,7 @@ export default function OrderConfirmationModal({ onClose, onSubmit, cartItems, t
     if (Object.keys(e2).length) { setErrors(e2); return; }
     setSubmitting(true);
 
-    const orderId = `SM-${Date.now().toString().slice(-6)}`;
+    const orderId   = `SM-${Date.now().toString().slice(-6)}`;
     const orderDate = new Date().toLocaleString('en-PK');
     try {
       await sendEmails(orderId, orderDate);
@@ -110,90 +107,104 @@ export default function OrderConfirmationModal({ onClose, onSubmit, cartItems, t
 
   return (
     <>
-      <div className="fixed inset-0 backdrop-blur-sm bg-black/40 flex items-center justify-center p-4 z-50">
-        <div className="bg-white rounded-lg w-full max-w-3xl max-h-[90vh] overflow-y-auto shadow-lg">
-          <div className="sticky top-0 bg-white z-10 flex justify-between p-4 border-b">
-            <h2 className="text-xl font-bold">Complete Your Order</h2>
-            <button onClick={onClose}><FiX className="h-6 w-6"/></button>
+      <div className="fixed inset-0 backdrop-blur-sm bg-black/40 flex items-center justify-center p-4 z-50 animate-fade-in">
+        <div className="bg-white rounded-lg w-full max-w-3xl max-h-[90vh] overflow-y-auto shadow-xl border-2 border-teal-200 animate-slide-up">
+          <div className="sticky top-0 bg-white z-10 flex justify-between p-4 border-b border-teal-100">
+            <h2 className="text-2xl font-bold text-teal-700">Complete Your Order</h2>
+            <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+              <FiX className="h-6 w-6" />
+            </button>
           </div>
           <form onSubmit={handleSubmit} className="p-6 space-y-6">
+            {/* Personal & Receiver Info */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block mb-1">Full Name *</label>
+                <label className="block mb-1 text-sm font-medium text-gray-700">Full Name *</label>
                 <input name="fullName" value={data.fullName} onChange={handleChange}
-                       className="w-full p-2 border rounded"/>
-                {errors.fullName && <p className="text-red-500 text-sm">{errors.fullName}</p>}
+                       className="w-full p-2 border rounded focus:ring-2 focus:ring-teal-300"/>
+                {errors.fullName && <p className="text-red-500 text-xs">{errors.fullName}</p>}
               </div>
               <div>
-                <label className="block mb-1">Contact Number *</label>
+                <label className="block mb-1 text-sm font-medium text-gray-700">Contact Number *</label>
                 <input name="contactNumber" value={data.contactNumber} onChange={handleChange}
-                       placeholder="03XXXXXXXXX" className="w-full p-2 border rounded"/>
-                {errors.contactNumber && <p className="text-red-500 text-sm">{errors.contactNumber}</p>}
+                       placeholder="03XXXXXXXXX" className="w-full p-2 border rounded focus:ring-2 focus:ring-teal-300"/>
+                {errors.contactNumber && <p className="text-red-500 text-xs">{errors.contactNumber}</p>}
               </div>
               <div className="md:col-span-2">
-                <label className="block mb-1">Email</label>
+                <label className="block mb-1 text-sm font-medium text-gray-700">Email</label>
                 <input name="email" type="email" value={data.email} onChange={handleChange}
-                       className="w-full p-2 border rounded"/>
+                       className="w-full p-2 border rounded focus:ring-2 focus:ring-teal-300"/>
               </div>
             </div>
+
+            {/* Receiver & Relationship */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block mb-1">Receiver Name *</label>
+                <label className="block mb-1 text-sm font-medium text-gray-700">Receiver Name *</label>
                 <input name="receiverName" value={data.receiverName} onChange={handleChange}
-                       className="w-full p-2 border rounded"/>
-                {errors.receiverName && <p className="text-red-500 text-sm">{errors.receiverName}</p>}
+                       className="w-full p-2 border rounded focus:ring-2 focus:ring-teal-300"/>
+                {errors.receiverName && <p className="text-red-500 text-xs">{errors.receiverName}</p>}
               </div>
               <div>
-                <label className="block mb-1">Receiver CNIC *</label>
+                <label className="block mb-1 text-sm font-medium text-gray-700">Receiver CNIC *</label>
                 <InputMask mask="99999-9999999-9" name="receiverCNIC" replacement={{'9':/\d/}}
                            value={data.receiverCNIC} onChange={handleChange}
-                           className="w-full p-2 border rounded" placeholder="12345-1234567-1"/>
-                {errors.receiverCNIC && <p className="text-red-500 text-sm">{errors.receiverCNIC}</p>}
+                           className="w-full p-2 border rounded focus:ring-2 focus:ring-teal-300" placeholder="12345-1234567-1"/>
+                {errors.receiverCNIC && <p className="text-red-500 text-xs">{errors.receiverCNIC}</p>}
               </div>
               <div>
-                <label className="block mb-1">Relationship *</label>
+                <label className="block mb-1 text-sm font-medium text-gray-700">Relationship *</label>
                 <select name="relationship" value={data.relationship} onChange={handleChange}
-                        className="w-full p-2 border rounded">
+                        className="w-full p-2 border rounded focus:ring-2 focus:ring-teal-300">
                   <option value="">Select</option>{relationships.map(r=> <option key={r} value={r}>{r}</option>)}
                 </select>
-                {errors.relationship && <p className="text-red-500 text-sm">{errors.relationship}</p>}
+                {errors.relationship && <p className="text-red-500 text-xs">{errors.relationship}</p>}
               </div>
             </div>
+
+            {/* Address & Landmark */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block mb-1">State *</label>
+                <label className="block mb-1 text-sm font-medium text-gray-700">Complete Address *</label>
+                <textarea name="completeAddress" value={data.completeAddress} onChange={handleChange}
+                          className="w-full p-2 border rounded focus:ring-2 focus:ring-teal-300" rows="2"/>
+                {errors.completeAddress && <p className="text-red-500 text-xs">{errors.completeAddress}</p>}
+              </div>
+              <div>
+                <label className="block mb-1 text-sm font-medium text-gray-700">Landmark</label>
+                <input name="landmark" value={data.landmark} onChange={handleChange}
+                       className="w-full p-2 border rounded focus:ring-2 focus:ring-teal-300" placeholder="e.g. Near Big Mosque"/>
+              </div>
+              <div>
+                <label className="block mb-1 text-sm font-medium text-gray-700">State *</label>
                 <select name="state" value={data.state} onChange={handleChange}
-                        className="w-full p-2 border rounded">
+                        className="w-full p-2 border rounded focus:ring-2 focus:ring-teal-300">
                   <option value="">Select State</option>{states.map(s=> <option key={s} value={s}>{s}</option>)}
                 </select>
-                {errors.state && <p className="text-red-500 text-sm">{errors.state}</p>}
+                {errors.state && <p className="text-red-500 text-xs">{errors.state}</p>}
               </div>
               <div>
-                <label className="block mb-1">City *</label>
+                <label className="block mb-1 text-sm font-medium text-gray-700">City *</label>
                 <select name="city" value={data.city} onChange={handleChange}
-                        className="w-full p-2 border rounded">
+                        className="w-full p-2 border rounded focus:ring-2 focus:ring-teal-300">
                   <option value="">Select City</option>{pakCities.map(c=> <option key={c} value={c}>{c}</option>)}
                 </select>
-                {errors.city && <p className="text-red-500 text-sm">{errors.city}</p>}
+                {errors.city && <p className="text-red-500 text-xs">{errors.city}</p>}
               </div>
               <div>
-                <label className="block mb-1">Zip Code *</label>
+                <label className="block mb-1 text-sm font-medium text-gray-700">Zip Code *</label>
                 <input name="zipCode" value={data.zipCode} onChange={handleChange}
-                       className="w-full p-2 border rounded"/>
-                {errors.zipCode && <p className="text-red-500 text-sm">{errors.zipCode}</p>}
-              </div>
-              <div className="md:col-span-2">
-                <label className="block mb-1">Complete Address *</label>
-                <textarea name="completeAddress" value={data.completeAddress} onChange={handleChange}
-                          className="w-full p-2 border rounded" rows="2"/>
-                {errors.completeAddress && <p className="text-red-500 text-sm">{errors.completeAddress}</p>}
+                       className="w-full p-2 border rounded focus:ring-2 focus:ring-teal-300"/>
+                {errors.zipCode && <p className="text-red-500 text-xs">{errors.zipCode}</p>}
               </div>
             </div>
+
+            {/* Payment & Summary */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block mb-1">Payment Method *</label>
+                <label className="block mb-1 text-sm font-medium text-gray-700">Payment Method *</label>
                 <select name="paymentMethod" value={data.paymentMethod} onChange={handleChange}
-                        className="w-full p-2 border rounded">
+                        className="w-full p-2 border rounded focus:ring-2 focus:ring-teal-300">
                   <option value="cash">Cash on Delivery</option>
                   <option value="bank">Bank Transfer</option>
                   <option value="jazzcash">JazzCash</option>
@@ -202,46 +213,37 @@ export default function OrderConfirmationModal({ onClose, onSubmit, cartItems, t
               </div>
               {data.paymentMethod !== 'cash' && (
                 <div>
-                  <label className="block mb-1">Transaction ID *</label>
+                  <label className="block mb-1 text-sm font-medium text-gray-700">Transaction ID *</label>
                   <input name="transactionId" value={data.transactionId} onChange={handleChange}
-                         className="w-full p-2 border rounded"/>
-                  {errors.transactionId && <p className="text-red-500 text-sm">{errors.transactionId}</p>}
+                         className="w-full p-2 border rounded focus:ring-2 focus:ring-teal-300"/>
+                  {errors.transactionId && <p className="text-red-500 text-xs">{errors.transactionId}</p>}
                 </div>
               )}
             </div>
-            <div>
-{/* Order Summary */}
-<h3 className="text-lg font-semibold mb-3 text-gray-800 border-b border-gray-300 pb-2">
-  Order Summary
-</h3>
-<div className="bg-white p-4 rounded-lg shadow-sm divide-y divide-gray-200">
-  {cartItems.map(i => (
-    <div
-      key={`${i.id}-${i.size}`}
-      className="flex justify-between items-center py-3"
-    >
-      <span className="text-gray-700">
-        {i.name} <span className="text-sm text-gray-500">({i.size||'N/A'})</span> × {i.quantity}
-      </span>
-      <span className="font-medium text-gray-900">
-        Rs {(i.price * i.quantity).toFixed(2)}
-      </span>
-    </div>
-  ))}
 
-  <div className="flex justify-between items-center pt-4 mt-4 border-t border-gray-200">
-    <span className="text-base font-semibold text-gray-800">Total</span>
-    <span className="text-xl font-bold text-green-600">
-      Rs {total.toFixed(2)}
-    </span>
-  </div>
-</div>
+            {/* Order Summary */}
+            <div>
+              <h3 className="text-lg font-semibold mb-3 text-teal-700 border-b border-teal-100 pb-2">Order Summary</h3>
+              <div className="bg-gray-50 p-4 rounded-lg shadow-inner divide-y divide-gray-200">
+                {cartItems.map(i => (
+                  <div key={`${i.id}-${i.size}`} className="flex justify-between py-2">
+                    <span className="text-gray-800">{i.name} <span className="text-sm text-gray-500">({i.size||'N/A'})</span> × {i.quantity}</span>
+                    <span className="font-semibold text-gray-900">Rs {(i.price * i.quantity).toFixed(2)}</span>
+                  </div>
+                ))}
+                <div className="flex justify-between pt-4 mt-4 border-t border-gray-200">
+                  <span className="text-base font-semibold text-gray-800">Total</span>
+                  <span className="text-xl font-bold text-green-600">Rs {total.toFixed(2)}</span>
+                </div>
+              </div>
             </div>
+
+            {/* Actions */}
             <div className="flex justify-end space-x-4 pt-4">
               <button type="button" onClick={onClose} disabled={submitting}
-                      className="px-5 py-2 bg-gray-300 rounded">Cancel</button>
+                      className="px-5 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition">Cancel</button>
               <button type="submit" disabled={submitting}
-                      className="px-5 py-2 bg-green-600 text-white rounded">
+                      className="px-5 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition flex items-center">
                 {submitting ? 'Processing…' : 'Confirm Order'}
               </button>
             </div>
