@@ -21,24 +21,30 @@ export default function ProductModal({ product, onClose }) {
   if (!product) return null;
 
   const handleAddToCart = () => {
-    const finalSize = selectedSize || product.sizes?.[0] || '';
-
+    const finalSize = selectedSize;
+  
+    if (product.sizes?.length && !finalSize) {
+      setToast({ show: true, message: 'Please select a size first', type: 'error' });
+      setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 2000);
+      return;
+    }
+  
     if (checkIfAlreadyInCart(product.id, finalSize)) {
       setToast({ show: true, message: 'Product already in cart!', type: 'error' });
       setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 2000);
       return;
     }
-
+  
     addItemToCart({ ...product, quantity, size: finalSize });
     setToast({ show: true, message: 'Added to Cart!', type: 'success' });
-
+  
     setTimeout(() => {
       setToast({ show: false, message: '', type: 'success' });
       onClose();
       navigate('/cart');
     }, 800);
   };
-
+  
   return (
     <>
       <div className="fixed inset-0 backdrop-blur-sm bg-black/40 flex items-center justify-center p-4 z-50">

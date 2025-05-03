@@ -63,7 +63,7 @@ export default function Home() {
       <a
         href="https://wa.me/923008600444?text=Hello! How can we help you??"
         aria-label="Chat on WhatsApp"
-        className="fixed bottom-4 right-4 md:bottom-8 md:right-8 bg-green-500 hover:bg-green-600 text-white p-4 rounded-full shadow-lg z-50"
+        className="fixed bottom-4 right-4 md:bottom-8 md:right-4 bg-green-500 hover:bg-green-600 text-white p-4 rounded-full shadow-lg z-50"
       >
         <FaWhatsapp className="h-3 w-3 md:h-3 md:w-3" />
       </a>
