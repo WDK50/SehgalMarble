@@ -1,52 +1,54 @@
+// src/Pages/ProductsPage.jsx
 import React, { useState, useMemo, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
 import ProductModal from '../components/ProductModal';
 import { useCart } from '../context/CartContext';
 import { FiSearch } from 'react-icons/fi';
-import { ArrowUp } from 'lucide-react';
+import { ArrowUp, ArrowLeft, ArrowRight } from 'lucide-react';
 import { allProducts, productCategories } from '../data/products';
 
 export default function ProductsPage() {
   const { addItemToCart } = useCart();
   const [searchParams] = useSearchParams();
   const initialCategory = decodeURIComponent(searchParams.get('category') || '');
+
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState(initialCategory);
   const [selectedProduct, setSelectedProduct] = useState(null);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(12);
   const [showScroll, setShowScroll] = useState(false);
 
   useEffect(() => {
-    const onScroll = () => {
-      setShowScroll(window.scrollY > 300);
-    };
+    const update = () => setItemsPerPage(window.innerWidth < 640 ? 5 : 12);
+    update();
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, []);
+  useEffect(() => {
+    const onScroll = () => setShowScroll(window.scrollY > 300);
     window.addEventListener('scroll', onScroll);
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedCategory]);
 
-  const filteredProducts = useMemo(
-    () =>
-      allProducts.filter(p => {
-        const q = searchQuery.toLowerCase();
-        return (
-          (p.name.toLowerCase().includes(q) || p.code.toLowerCase().includes(q)) &&
-          (selectedCategory ? p.category === selectedCategory : true)
-        );
-      }),
-    [searchQuery, selectedCategory]
-  );
+  const filtered = useMemo(() => {
+    const q = searchQuery.toLowerCase();
+    return allProducts.filter(p =>
+      (p.name.toLowerCase().includes(q) || p.code.toLowerCase().includes(q)) &&
+      (selectedCategory ? p.category === selectedCategory : true)
+    );
+  }, [searchQuery, selectedCategory]);
 
-  const categories = useMemo(
-    () =>
-      Array.from(
-        filteredProducts.reduce((m, p) => {
-          if (!m.has(p.category)) m.set(p.category, []);
-          m.get(p.category).push(p);
-          return m;
-        }, new Map())
-      ).map(([category, products]) => ({ category, products })),
-    [filteredProducts]
-  );
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const paginated = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return filtered.slice(start, start + itemsPerPage);
+  }, [filtered, currentPage, itemsPerPage]);
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -74,29 +76,63 @@ export default function ProductsPage() {
           >
             <option value="">All Categories</option>
             {productCategories.map(cat => (
-              <option key={cat} value={cat}>
-                {cat}
-              </option>
+              <option key={cat} value={cat}>{cat}</option>
             ))}
           </select>
         </div>
+        <section className="mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+            {paginated.map(product => (
+              <div
+                key={product.id}
+                className="cursor-pointer"
+                onClick={() => setSelectedProduct(product)}
+              >
+                <ProductCard product={product} onAddToCart={addItemToCart} />
+              </div>
+            ))}
+          </div>
+        </section>
 
-        {categories.map(({ category, products }) => (
-          <section key={category} className="mb-12">
-            <h2 className="text-2xl font-semibold text-gray-800 mb-4">{category}</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-              {products.map(product => (
-                <div
-                  key={product.id}
-                  className="cursor-pointer "
-                  onClick={() => setSelectedProduct(product)}
-                >
-                  <ProductCard product={product} onAddToCart={addItemToCart} />
-                </div>
-              ))}
-            </div>
-          </section>
-        ))}
+{totalPages > 1 && (
+  <div className="flex items-center justify-center mt-8 px-2">
+    <button
+      onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
+      disabled={currentPage === 1}
+      className="p-2 bg-gray-200 rounded-full disabled:opacity-50"
+      aria-label="Previous page"
+    >
+      <ArrowLeft className="w-4 h-4" />
+    </button>
+
+    <div className="flex flex-wrap sm:flex-nowrap gap-1 mx-2 overflow-x-auto">
+      {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+        <button
+          key={page}
+          onClick={() => setCurrentPage(page)}
+          className={`
+            min-w-[2rem] flex-shrink-0 text-center
+            px-2 py-1 rounded
+            ${page === currentPage
+              ? 'bg-blue-600 text-white'
+              : 'bg-gray-100 hover:bg-gray-200'}
+          `}
+        >
+          {page}
+        </button>
+      ))}
+    </div>
+
+    <button
+      onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
+      disabled={currentPage === totalPages}
+      className="p-2 bg-gray-200 rounded-full disabled:opacity-50"
+      aria-label="Next page"
+    >
+      <ArrowRight className="w-4 h-4" />
+    </button>
+  </div>
+)}
       </div>
 
       {selectedProduct && (
@@ -110,10 +146,10 @@ export default function ProductsPage() {
       {showScroll && (
         <button
           onClick={scrollToTop}
-          className="fixed bottom-6 right-6 md:bottom-8 md:right-8 bg-teal-600 hover:bg-teal-700 text-white p-3 rounded-full shadow-md transition"
+          className="fixed bottom-6 right-6 bg-teal-600 hover:bg-teal-700 text-white p-3 rounded-full shadow-md transition"
           aria-label="Scroll to top"
         >
-          <ArrowUp className="w-5 h-5 cursor-pointer" />
+          <ArrowUp className="w-5 h-5" />
         </button>
       )}
     </div>

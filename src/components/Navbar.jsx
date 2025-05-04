@@ -41,7 +41,7 @@ export default function Navbar() {
   return (
     <nav className="bg-white shadow-md">
       <div className="container mx-auto px-4 py-4 flex justify-between items-center relative">
-        <Link to="/" className="text-2xl font-bold text-gray-800">Sehgal Marble</Link>
+        <Link to="/" className="text-2xl font-bold text-gray-800">SEHGAL MARBLE</Link>
 
         <div className="hidden md:flex space-x-6 text-gray-700 font-medium">
           <Link to="/" className="hover:underline">Home</Link>
