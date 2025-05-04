@@ -99,7 +99,7 @@ export default function ProductsPage() {
     <button
       onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
       disabled={currentPage === 1}
-      className="p-2 bg-gray-200 rounded-full disabled:opacity-50"
+      className="p-2 bg-gray-200 rounded-full disabled:opacity-50 cursor-pointer"
       aria-label="Previous page"
     >
       <ArrowLeft className="w-4 h-4" />
@@ -111,7 +111,7 @@ export default function ProductsPage() {
           key={page}
           onClick={() => setCurrentPage(page)}
           className={`
-            min-w-[2rem] flex-shrink-0 text-center
+            min-w-[2rem] flex-shrink-0 text-center cursor-pointer
             px-2 py-1 rounded
             ${page === currentPage
               ? 'bg-blue-600 text-white'
@@ -126,7 +126,7 @@ export default function ProductsPage() {
     <button
       onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
       disabled={currentPage === totalPages}
-      className="p-2 bg-gray-200 rounded-full disabled:opacity-50"
+      className="p-2 bg-gray-200 rounded-full cursor-pointer disabled:opacity-50"
       aria-label="Next page"
     >
       <ArrowRight className="w-4 h-4" />
@@ -146,10 +146,10 @@ export default function ProductsPage() {
       {showScroll && (
         <button
           onClick={scrollToTop}
-          className="fixed bottom-6 right-6 bg-teal-600 hover:bg-teal-700 text-white p-3 rounded-full shadow-md transition"
+          className="fixed bottom-6 right-6 cursor-pointer bg-teal-600 hover:bg-teal-700 text-white p-3 rounded-full shadow-md transition"
           aria-label="Scroll to top"
         >
-          <ArrowUp className="w-5 h-5" />
+          <ArrowUp className="w-5 h-5 cursor-pointer" />
         </button>
       )}
     </div>
