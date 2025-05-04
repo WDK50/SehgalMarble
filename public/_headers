@@ -1,6 +1,7 @@
+# public/_headers
+
 /assets/*
-  Cache-Control: public, max-age=31536000, immutable          # long‑term cache
-  Content-Encoding: br                                         # Brotli served at edge
+  Cache-Control: public, max-age=31536000, immutable
 
 /*.html
   Cache-Control: public, max-age=0, must-revalidate
