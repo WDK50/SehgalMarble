@@ -28,17 +28,17 @@ const About = () => {
   const team = [
     {
       img: Team1,
-      name: "Ali Khan",
+      name: "Khawaja",
       role: "Founder & CEO",
     },
     {
       img: Team1,
-      name: "Sara Iqbal",
+      name: "Khawaja",
       role: "Head of Design",
     },
     {
       img: Team1,
-      name: "Omar Sheikh",
+      name: "Khawaja",
       role: "Operations Manager",
     },
   ];
